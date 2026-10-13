@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "uv: sync", "type": "shell", "command": "uv sync", "problemMatcher": [] },
+    { "label": "uv: Projekt starten", "type": "shell", "command": "uv run python -m ${config:uvProject.package}", "problemMatcher": [], "group": { "kind": "build", "isDefault": true } },
+    { "label": "uv: Tests (pytest)", "type": "shell", "command": "uv run pytest -v", "problemMatcher": [], "group": { "kind": "test", "isDefault": true } },
+    { "label": "uv: Lint (ruff check --fix)", "type": "shell", "command": "uv run ruff check . --fix", "problemMatcher": [] },
+    { "label": "uv: Formatieren (ruff format)", "type": "shell", "command": "uv run ruff format .", "problemMatcher": [] },
+    { "label": "uv: Paket hinzufügen", "type": "shell", "command": "uv add ${input:pkg}", "problemMatcher": [] },
+    { "label": "uv: Dev-Paket hinzufügen", "type": "shell", "command": "uv add --dev ${input:pkg}", "problemMatcher": [] },
+    { "label": "uv: Paket entfernen", "type": "shell", "command": "uv remove ${input:pkg}", "problemMatcher": [] },
+    { "label": "uv: Alle Pakete aktualisieren", "type": "shell", "command": "uv lock --upgrade; uv sync", "problemMatcher": [] },
+    { "label": "uv: Veraltete Pakete anzeigen", "type": "shell", "command": "uv tree --outdated --depth 1", "problemMatcher": [] },
+    { "label": "uv: Abhängigkeitsbaum", "type": "shell", "command": "uv tree", "problemMatcher": [] },
+    { "label": "uv: Python-Version festlegen", "type": "shell", "command": "uv python pin ${input:pyver}; uv sync", "problemMatcher": [] },
+    { "label": "uv: Bauen (uv build)", "type": "shell", "command": "uv build", "problemMatcher": [] }
+  ],
+  "inputs": [
+    { "id": "pkg", "type": "promptString", "description": "Paketname, z. B. requests oder \"requests>=2.32\"" },
+    { "id": "pyver", "type": "promptString", "description": "Python-Version, z. B. 3.13", "default": "3.13" }
+  ]
+}

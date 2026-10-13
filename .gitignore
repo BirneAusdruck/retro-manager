@@ -1,0 +1,41 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# ---------------------------------------------------------------
+# Ergänzung aus uv-vorlage/vorlagen/gitignore-ergaenzung
+# ---------------------------------------------------------------
+# Tool-Caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Testabdeckung
+.coverage
+htmlcov/
+
+# Lokale Geheimnisse und Umgebungsvariablen
+.env
+.env.*
+
+# Qt / PyInstaller
+*.spec
+resources_rc.py
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+
+# VS Code: nur die gemeinsamen Dateien versionieren
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

@@ -1,0 +1,30 @@
+{
+  // Name des Python-Packages (Ordner unter src/), wird von tasks.json und launch.json genutzt
+  "uvProject.package": "retro_manager",
+
+  // Interpreter aus der uv-venv (Windows: ".venv/Scripts/python.exe")
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+
+  // Tests mit pytest
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["tests"],
+
+  // Ruff: formatieren, Imports sortieren und einfache Fehler beheben beim Speichern
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
+    }
+  },
+
+  // Cache-Ordner im Explorer ausblenden
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true
+  }
+}
