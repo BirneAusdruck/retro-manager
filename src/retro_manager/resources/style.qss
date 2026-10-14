@@ -1,0 +1,37 @@
+/* Zentrales Stylesheet der Anwendung. Styling nur hier, gezielt per #objektname. */
+
+#appHeader {
+    background-color: #f5e6c8;
+    border-bottom: 4px solid #1a1a2e;
+}
+
+#toolTabs::tab {
+    background: transparent;
+    color: #1a1a2e;
+    font-weight: bold;
+    padding: 8px 20px;
+    margin-left: 8px;
+    border: 2px solid #1a1a2e;
+    border-bottom: none;
+}
+
+#toolTabs::tab:selected {
+    background: #f39c12;
+}
+
+#toolTabs::tab:hover:!selected {
+    background: #ead6ae;
+}
+
+#igirMissing,
+#igirStatus {
+    color: #c0392b;
+}
+
+#igirLog {
+    font-family: monospace;
+}
+
+#setupHint {
+    color: #c0392b;
+}

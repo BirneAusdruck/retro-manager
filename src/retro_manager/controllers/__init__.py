@@ -1,0 +1,1 @@
+"""CONTROLLER – Qt-gestützt, asynchron."""

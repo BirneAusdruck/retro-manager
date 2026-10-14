@@ -1,0 +1,63 @@
+# RomM-Stack für retro-manager.
+# Wird von der App per `docker compose up -d` / `docker compose stop` gesteuert.
+# Alle Variablen kommen aus docker/.env (von der App erzeugt, nicht einchecken).
+name: retro-manager
+
+services:
+  romm:
+    image: rommapp/romm:5.4.0
+    container_name: retro-manager-romm
+    restart: unless-stopped
+    environment:
+      DB_HOST: romm-db
+      DB_NAME: romm
+      DB_USER: romm-user
+      DB_PASSWD: ${DB_PASSWORD}
+      ROMM_AUTH_SECRET_KEY: ${ROMM_AUTH_SECRET_KEY}
+      HASHEOUS_API_ENABLED: "true"
+      # Metadaten-Dienste: werden später in den Einstellungen der App gesetzt.
+      IGDB_CLIENT_ID: ${IGDB_CLIENT_ID:-}
+      IGDB_CLIENT_SECRET: ${IGDB_CLIENT_SECRET:-}
+      SCREENSCRAPER_USER: ${SCREENSCRAPER_USER:-}
+      SCREENSCRAPER_PASSWORD: ${SCREENSCRAPER_PASSWORD:-}
+      STEAMGRIDDB_API_KEY: ${STEAMGRIDDB_API_KEY:-}
+      RETROACHIEVEMENTS_API_KEY: ${RETROACHIEVEMENTS_API_KEY:-}
+    volumes:
+      - ${ROMM_LIBRARY_PATH}:/romm/library
+      - romm_resources:/romm/resources
+      - romm_redis_data:/redis-data
+      - romm_assets:/romm/assets
+      - romm_config:/romm/config
+    ports:
+      # Nur lokal erreichbar.
+      - "127.0.0.1:${ROMM_PORT}:8080"
+    depends_on:
+      romm-db:
+        condition: service_healthy
+        restart: true
+
+  romm-db:
+    image: mariadb:11.4
+    container_name: retro-manager-romm-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: romm
+      MARIADB_USER: romm-user
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 30s
+      start_interval: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+  romm_resources:
+  romm_redis_data:
+  romm_assets:
+  romm_config:
