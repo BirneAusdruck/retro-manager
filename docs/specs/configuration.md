@@ -10,7 +10,7 @@ Grundsatz: Nicht Geheimes in der INI, Geheimes nur im Systemschlüsselbund ([arc
 | Geheimnisse | Systemschlüsselbund über `keyring` (Linux: Secret Service), Dienst `retro-manager` | – |
 | RomM-Umgebung | `docker/.env`, bei jedem Start neu geschrieben, Rechte 0600 | nein |
 | SFTP-Host-Keys | `known_hosts` neben der App | nein |
-| Weboberfläche (Cookies, Cache) | `webdata/` | nein |
+| Weboberfläche | `webdata/storage/` (Cookies), `webdata/cache/` | nein |
 | Externe Programme | `tools/igir/`, `tools/7zip/`, ggf. `tools/chdman/` | nein |
 | Igir-Reports | `reports/` | nein |
 
@@ -25,7 +25,7 @@ Neben der Programmdatei heißt: im gepackten Programm der Ordner der Programmdat
 | `[jobs]` | `max_parallel` | `2` | gleichzeitige Jobs (Archive-Reiter), im Code `AppConfig.max_parallel_jobs` |
 | `[igir]` | `input_dir`, `dat_dir` | – | zuletzt verwendete Ordner im Igir-Reiter |
 | `[export]` | `device`, `connection` | `ps3`, – | Zielgerät und Verbindung für „An Gerät senden“ |
-| `[chdman]` | `delete_originals` | `true` | Originale nach geprüfter Umwandlung löschen |
+| `[chdman]` | `delete_originals` | `true` | Originale nach geprüfter Umwandlung bzw. die CHD nach erfolgreichem Zurückwandeln löschen |
 | `[archives]` | `format`, `level`, `delete_originals` | `zip`, `normal`, `false` | Packformat (`zip`/`7z`), Stufe (`fast`/`normal`/`max`), Originale löschen |
 | `[connection:<id>]` | `name`, `protocol`, `host`, `port`, `user`, `start_dir` | – | gespeicherte FTP/FTPS/SFTP-Verbindung |
 | `[ps3]` | `host`, `port` | –, `21` | alt; wird einmalig als Verbindung „PS3“ übernommen |

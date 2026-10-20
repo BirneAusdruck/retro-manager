@@ -34,7 +34,7 @@ chdman gehört zu MAME (GPL). Gesucht unter `tools/chdman/chdman` bzw. `chdman.e
 | Byte | Inhalt |
 |---|---|
 | 0–7 | Kennung `MComprHD` |
-| 12–15 | Version (Big Endian) |
+| 12–15 | Version (Big Endian); bei Version ≠ 5 liest `read_header` keine Medienart |
 | 32–39 | Inhaltsgröße unkomprimiert (`logical size`) |
 | 48–55 | Versatz des ersten Metadaten-Eintrags |
 

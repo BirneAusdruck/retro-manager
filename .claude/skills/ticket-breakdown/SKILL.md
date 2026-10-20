@@ -14,7 +14,7 @@ Grundsatz: **Erst vorschlagen, dann anlegen.** Kein Issue wird erstellt, bevor d
 ## Ablauf
 
 1. **Spec lesen.** Enthält sie offene Fragen, die die Zerlegung beeinflussen, diese zuerst stellen und abbrechen, bis sie geklärt sind.
-2. **Kontext lesen:** die betroffenen `docs/features/…`, bei neuen Modulen `docs/architekture.md`, und den vorhandenen Code der betroffenen Bereiche. Ziel: realistisch einschätzen, welche Dateien sich ändern.
+2. **Kontext lesen:** die betroffenen `docs/features/…`, bei neuen Modulen `docs/architecture.md`, und den vorhandenen Code der betroffenen Bereiche. Ziel: realistisch einschätzen, welche Dateien sich ändern.
 3. **Bestehende Issues prüfen:** `gh issue list --search "<stichworte>" --state all` – gibt es das Feature-Issue oder Teile davon schon?
 4. **Zerlegen** nach den Regeln unten.
 5. **Vorschlag zeigen** als nummerierte Liste: Titel, Ziel in einem Satz, Schichten, wichtigste Akzeptanzkriterien, Abhängigkeiten. Auf Freigabe oder Änderungswünsche warten.

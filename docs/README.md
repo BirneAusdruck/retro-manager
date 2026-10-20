@@ -30,6 +30,7 @@ Retro Manager ist eine Desktop-App (Python, PySide6) zur Verwaltung einer Retro-
 | [specs/chdman.md](specs/chdman.md) | chdman-Befehle, CHD-Kopf, Fortschrittsausgabe |
 | [specs/7zip.md](specs/7zip.md) | 7-Zip-Befehle, Archivnamen, Fortschrittsausgabe |
 | [specs/dat-sources.md](specs/dat-sources.md) | DAT-o-MATIC, Redump: Adressen und Abläufe |
+| [specs/remote.md](specs/remote.md) | FTP/FTPS/SFTP: Listing, Fortsetzen, Anmeldung, Host-Keys |
 | [specs/ps3-iso.md](specs/ps3-iso.md) | Entschlüsseln von PS3-ISOs mit Redump-Disc-Key |
 | **adr/** | Architekturentscheidungen mit Begründung ([Übersicht](adr/README.md)) |
 

@@ -58,7 +58,7 @@ Ist das Issue geschlossen, nur melden und abbrechen.
 ### B1. Vorbereiten
 
 - Abhängigkeiten aus „Hinweise“ prüfen (`gh issue view <dep> --json state`). Ist eine offen: abbrechen und melden.
-- Issue-Kontext lesen: alle unter „Kontext“ genannten Docs, `docs/features/<bereich>.md`, bei neuen Modulen `docs/architekture.md`.
+- Issue-Kontext lesen: alle unter „Kontext“ genannten Docs, `docs/features/<bereich>.md`, bei neuen Modulen `docs/architecture.md`.
 - Feature-Branch suchen: `git fetch origin && git branch -r --list "origin/feature/<feature-nr>-*"`.
 - Prüfen, ob `main` Neues enthält, das im Feature-Branch fehlt: `git log --oneline origin/feature/<…>..origin/main`.
 
@@ -126,7 +126,7 @@ War es das letzte offene Sub-Issue: **„Feature abschließen“** vorschlagen.
 ## Umsetzen und prüfen (B und C)
 
 - Reihenfolge: `core/` mit Unit-Tests, dann Controller, dann View.
-- Regeln aus der CLAUDE.md und ggf. `widgets/CLAUDE.md` bzw. `controllers/CLAUDE.md`; bestehende Muster und im Issue genannte Vorbilder nachahmen.
+- Regeln aus `docs/architecture.md` und `docs/development.md` (in der CLAUDE.md eingebunden); bestehende Muster und im Issue genannte Vorbilder nachahmen.
 - „Nicht Teil dieser Aufgabe“ strikt einhalten; Auffälligkeiten notieren.
 - Prüfen:
   ```bash
@@ -141,7 +141,7 @@ War es das letzte offene Sub-Issue: **„Feature abschließen“** vorschlagen.
 
 ## Feature abschließen
 
-Wenn alle Sub-Issues erledigt sind (aus A oder nach dem letzten B4):
+Wenn alle Sub-Issues erledigt sind (aus A oder nach dem letzten B4). Wurde das Feature noch nicht mit `/review-feature` geprüft, das zuerst vorschlagen.
 
 1. ```bash
    git switch feature/<feature-nr>-<slug> && git pull

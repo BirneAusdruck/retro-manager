@@ -31,15 +31,15 @@ body:
       label: Bereich
       options:
         # bereiche:start – wird von .github/labels.sh erzeugt, nicht von Hand ändern
-        - romm
-        - igir
-        - dats
-        - chdman
+        - activity
         - archive
+        - chdman
+        - dats
         - export
         - ftp
-        - aktivitaet
-        - einstellungen
+        - igir
+        - romm
+        - settings
         - start
         # bereiche:end
         - übergreifend
