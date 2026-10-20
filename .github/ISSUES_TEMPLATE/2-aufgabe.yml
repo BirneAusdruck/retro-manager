@@ -1,0 +1,62 @@
+name: Aufgabe
+description: Konkreter Umsetzungsschritt, in einer Claude-Session erledigbar.
+title: ""
+labels: ["aufgabe"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Eine Aufgabe ist **klein genug für eine Session**. Ist sie größer, aufteilen.
+        Bei Teil eines Features: als Sub-Issue an das Feature hängen.
+  - type: textarea
+    id: ziel
+    attributes:
+      label: Ziel
+      description: Was ändert sich nach dieser Aufgabe? Ein bis drei Sätze.
+    validations:
+      required: true
+  - type: textarea
+    id: kontext
+    attributes:
+      label: Kontext
+      description: Relevante Docs, die vor Beginn gelesen werden müssen.
+      placeholder: |
+        - Spec: docs/specs/<name>.md
+        - Feature-Doku: docs/features/<name>.md
+        - Vorbild im Code: core/<modul>.py
+  - type: dropdown
+    id: schichten
+    attributes:
+      label: Betroffene Schichten
+      multiple: true
+      options:
+        - Model (core/)
+        - Controller (controllers/)
+        - View (widgets/)
+        - Item-Model (widgets/models/)
+        - Konfiguration / INI
+        - Docs
+    validations:
+      required: true
+  - type: textarea
+    id: akzeptanz
+    attributes:
+      label: Akzeptanzkriterien
+      description: Prüfbar formulieren – jedes Kriterium muss sich mit Ja/Nein beantworten lassen.
+      placeholder: |
+        - [ ] …
+        - [ ] Unit-Tests für neue Funktionen in core/
+        - [ ] `uv run pytest` und `uv run ruff check src tests` grün
+        - [ ] Doku per Skill `document-feature` aktualisiert
+    validations:
+      required: true
+  - type: textarea
+    id: nicht
+    attributes:
+      label: Nicht Teil dieser Aufgabe
+      description: Was ausdrücklich nicht angefasst werden soll.
+  - type: textarea
+    id: hinweise
+    attributes:
+      label: Hinweise
+      description: Bekannte Stolperfallen, Testdaten, Abhängigkeiten zu anderen Issues.

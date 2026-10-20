@@ -4,17 +4,22 @@ import logging
 import sys
 from importlib import resources
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QLibraryInfo, QLocale, QTimer, QTranslator
 from PySide6.QtWidgets import QApplication
 
+from retro_manager.controllers.activity_controller import ActivityController
+from retro_manager.controllers.archive_controller import ArchiveController
+from retro_manager.controllers.chdman_controller import ChdmanController
 from retro_manager.controllers.dat_controller import DatController
 from retro_manager.controllers.docker_controller import DockerController
+from retro_manager.controllers.export_controller import ExportController
 from retro_manager.controllers.igir_controller import IgirController
 from retro_manager.controllers.job_controller import JobController
 from retro_manager.controllers.romm_controller import RommController
 from retro_manager.controllers.settings_controller import SettingsController
 from retro_manager.controllers.startup_controller import StartupController
-from retro_manager.core import config, tools
+from retro_manager.controllers.transfer_controller import TransferController
+from retro_manager.core import config, connections, tools
 from retro_manager.widgets import images
 from retro_manager.widgets.error_dialog import StartupErrorDialog
 from retro_manager.widgets.loading_screen import LoadingScreen
@@ -43,6 +48,15 @@ def load_stylesheet(app: QApplication) -> None:
     app.setStyleSheet(stylesheet.read_text(encoding="utf-8"))
 
 
+def load_qt_translations(app: QApplication) -> QTranslator:
+    """Qt-eigene Texte (Dateidialoge, Ja/Nein-Knöpfe, Spaltenköpfe) in der Systemsprache."""
+    translator = QTranslator(app)
+    path = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
+    if translator.load(QLocale.system(), "qtbase", "_", path):
+        app.installTranslator(translator)
+    return translator
+
+
 def main(argv: list[str] | None = None) -> int:
     """Startet die Anwendung und gibt den Exit-Code zurück."""
     configure_logging()
@@ -54,6 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     app.setQuitOnLastWindowClosed(False)
     app.setWindowIcon(images.app_icon())
     load_stylesheet(app)
+    qt_translator = load_qt_translations(app)  # noqa: F841 – muss bis zum Ende leben
 
     splash = SplashScreen()
     splash.show()
@@ -69,10 +84,36 @@ def main(argv: list[str] | None = None) -> int:
     jobs = JobController(max_parallel_jobs=settings.config.max_parallel_jobs)
     igir = IgirController(tools.igir_executable(config.tools_dir(base)), config.reports_dir(base))
     dats = DatController(romm, tools.IGIR_VERSION)
+    # Früh laden, damit Verbindungen (inkl. Übernahme der alten PS3-Adresse) bereitstehen.
+    settings.load()
+    transfers = TransferController(
+        config.ini_path(base),
+        connections.known_hosts_path(base),
+        legacy_ps3=(settings.config.ps3_host, settings.config.ps3_port),
+    )
+    transfers.load()
+    chdman_path = tools.chdman_executable(config.tools_dir(base))
+    chdman = ChdmanController(chdman_path)
+    archive_jobs = ArchiveController(
+        tools.sevenzip_executable(config.tools_dir(base)), settings.config.max_parallel_jobs
+    )
+    exports = ExportController(chdman_path, transfers)
+    activities = ActivityController(igir, dats, chdman, archive_jobs, exports, transfers)
     startup = StartupController(settings, docker, romm, config.compose_dir(base))
 
     # Views
-    window = MainWindow(jobs, igir, dats, settings, config.webdata_dir(base))
+    window = MainWindow(
+        jobs,
+        igir,
+        dats,
+        chdman,
+        archive_jobs,
+        exports,
+        transfers,
+        activities,
+        settings,
+        config.webdata_dir(base),
+    )
     loading = LoadingScreen()
     setup_dialog = SetupDialog(settings, dev_mode=config.is_dev_build())
     error_dialog = StartupErrorDialog()
@@ -99,6 +140,10 @@ def main(argv: list[str] | None = None) -> int:
     error_dialog.quit_requested.connect(app.quit)
     app.aboutToQuit.connect(docker.stop)
     app.aboutToQuit.connect(igir.shutdown)
+    app.aboutToQuit.connect(chdman.cancel)
+    app.aboutToQuit.connect(archive_jobs.cancel)
+    app.aboutToQuit.connect(exports.cancel)
+    app.aboutToQuit.connect(transfers.shutdown)
     # Startbild erst schließen, wenn das Folgefenster schon sichtbar ist.
     startup.setup_required.connect(splash.close)
     startup.docker_starting.connect(splash.close)

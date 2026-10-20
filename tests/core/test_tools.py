@@ -74,3 +74,74 @@ def test_cue_inputs_prefers_platform_folder(tmp_path):
 def test_cue_inputs_without_cues(tmp_path):
     assert tools.cue_inputs(Path("/hdd/roms/psx"), None) == []
     assert tools.cue_inputs(Path("/hdd/roms/psx"), tmp_path / "fehlt") == []
+
+
+def test_chdman_prefers_tools_dir(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys, "platform", "linux")
+    local = tmp_path / "chdman" / "chdman"
+    local.parent.mkdir()
+    local.write_text("")
+    assert tools.chdman_executable(tmp_path) == local
+
+
+def test_chdman_falls_back_to_path(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools.shutil, "which", lambda name: "/usr/bin/chdman")
+    assert tools.chdman_executable(tmp_path) == Path("/usr/bin/chdman")
+    monkeypatch.setattr(tools.shutil, "which", lambda name: None)
+    assert tools.chdman_executable(tmp_path) is None
+
+
+def test_chdman_extract_args():
+    cd = tools.chdman_extract_args("cd", Path("/a/x.chd"), Path("/out"), "Spiel")
+    assert cd == ["extractcd", "-i", "/a/x.chd", "-o", "/out/Spiel.cue", "--splitbin", "-f"]
+    dvd = tools.chdman_extract_args("dvd", Path("/a/x.chd"), Path("/out"), "Spiel")
+    assert dvd == ["extractdvd", "-i", "/a/x.chd", "-o", "/out/Spiel.iso", "-f"]
+
+
+def test_chdman_extract_args_gdrom():
+    gd = tools.chdman_extract_args("gd", Path("/a/x.chd"), Path("/out"), "Spiel")
+    assert gd == ["extractcd", "-i", "/a/x.chd", "-o", "/out/Spiel.gdi", "-f"]
+
+
+def test_chdman_create_args():
+    cd = tools.chdman_create_args("cd", Path("/r/Spiel.cue"), Path("/t/Spiel.chd.part"))
+    assert cd == ["createcd", "-i", "/r/Spiel.cue", "-o", "/t/Spiel.chd.part", "-f"]
+    dvd = tools.chdman_create_args("dvd", Path("/r/Spiel.iso"), Path("/t/Spiel.chd.part"))
+    assert dvd[0] == "createdvd"
+
+
+def test_chdman_verify_and_info_args():
+    assert tools.chdman_verify_args(Path("/a/x.chd")) == ["verify", "-i", "/a/x.chd"]
+    assert tools.chdman_info_args(Path("/a/x.chd")) == ["info", "-i", "/a/x.chd"]
+
+
+def test_sevenzip_prefers_tools_dir(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools.sys, "platform", "linux")
+    local = tmp_path / "7zip" / "7zz"
+    local.parent.mkdir()
+    local.write_bytes(b"")
+    assert tools.sevenzip_executable(tmp_path) == local
+
+
+def test_sevenzip_falls_back_to_path(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools.shutil, "which", lambda name: "/usr/bin/7z" if name == "7z" else None)
+    assert tools.sevenzip_executable(tmp_path) == Path("/usr/bin/7z")
+    monkeypatch.setattr(tools.shutil, "which", lambda name: None)
+    assert tools.sevenzip_executable(tmp_path) is None
+
+
+def test_sevenzip_args():
+    assert tools.sevenzip_extract_args(Path("/a/x.7z"), Path("/w/out")) == [
+        "x",
+        "/a/x.7z",
+        "-o/w/out",
+        "-y",
+        "-bsp1",
+        "-bso0",
+        "-bse2",
+    ]
+    assert tools.sevenzip_test_args(Path("/a/x.rar"))[:2] == ["t", "/a/x.rar"]
+    pack = tools.sevenzip_pack_args("zip", 9, Path("/w/S.zip.part"), ["-seltsam.gb", "b.bin"])
+    assert pack[:4] == ["a", "-tzip", "-mx=9", "-mmt=on"]
+    # Dateinamen stehen hinter `--`, damit „-seltsam.gb“ kein Schalter wird.
+    assert pack[-4:] == ["/w/S.zip.part", "--", "-seltsam.gb", "b.bin"]

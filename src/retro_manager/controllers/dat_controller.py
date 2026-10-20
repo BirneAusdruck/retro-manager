@@ -44,6 +44,7 @@ class _WriteTask(QRunnable):
         rules: list[ConsoleRule],
         platforms: list[RommPlatform],
         cue_packs: dict[str, dict[str, bytes]],
+        key_packs: dict[str, dict[str, bytes]],
     ) -> None:
         super().__init__()
         self.signals = _WriteSignals()
@@ -53,6 +54,7 @@ class _WriteTask(QRunnable):
         self._rules = rules
         self._platforms = platforms
         self._cue_packs = cue_packs
+        self._key_packs = key_packs
 
     def run(self) -> None:
         try:
@@ -65,6 +67,7 @@ class _WriteTask(QRunnable):
                 SOURCES_TEXT,
                 date.today(),
                 cue_packs=self._cue_packs,
+                key_packs=self._key_packs,
             )
         except (OSError, zipfile.BadZipFile) as error:
             self.signals.error.emit(str(error))
@@ -133,6 +136,8 @@ class DatController(QObject):
         self._redump_total = 0
         self._redump_dats: list[DatFile] = []
         self._cue_packs: dict[str, dict[str, bytes]] = {}
+        self._key_packs: dict[str, dict[str, bytes]] = {}
+        self._extras: list[tuple[str, dat_update.RedumpSystem]] = []
 
     def _on_platforms(self, data: object) -> None:
         if not self._running:
@@ -250,33 +255,51 @@ class DatController(QObject):
             )
         self._redump_dats += dats
         matches = dat_update.match_dats(dats, self._rules, self._platforms)
-        if system.has_cues and any(match.platform for match in matches):
-            # Korrekte CUE-Dateien nur für Systeme laden, die RomM auch kennt.
-            QTimer.singleShot(dat_update.REDUMP_DELAY_MS, lambda: self._fetch_cues(system))
-            return
-        self._timer.start(dat_update.REDUMP_DELAY_MS)
+        # Zusatzdateien nur für Systeme laden, die RomM auch kennt.
+        self._extras = []
+        if any(match.platform for match in matches):
+            if system.has_cues:
+                self._extras.append(("cues", system))
+            if system.has_keys:
+                self._extras.append(("keys", system))
+        self._next_extra()
 
-    def _fetch_cues(self, system: dat_update.RedumpSystem) -> None:
+    def _next_extra(self) -> None:
+        if not self._extras:
+            self._timer.start(dat_update.REDUMP_DELAY_MS)
+            return
+        kind, system = self._extras.pop(0)
+        QTimer.singleShot(dat_update.REDUMP_DELAY_MS, lambda: self._fetch_extra(kind, system))
+
+    def _fetch_extra(self, kind: str, system: dat_update.RedumpSystem) -> None:
         if not self._running:
             return
-        url = dat_update.REDUMP_CUES_URL.format(code=system.code)
-        self._get(url, lambda s, h, b: self._on_redump_cues(system, s, b))
+        template = dat_update.REDUMP_CUES_URL if kind == "cues" else dat_update.REDUMP_KEYS_URL
+        url = template.format(code=system.code)
+        self._get(url, lambda s, h, b: self._on_extra(kind, system, s, b))
 
-    def _on_redump_cues(self, system: dat_update.RedumpSystem, status: int, body: bytes) -> None:
+    def _on_extra(
+        self, kind: str, system: dat_update.RedumpSystem, status: int, body: bytes
+    ) -> None:
+        label = self.tr("CUE-Dateien") if kind == "cues" else self.tr("Disc-Keys")
+        files: dict[str, bytes] = {}
         if status == 200 and body[:2] == b"PK":
             try:
-                cues = dat_update.extract_cues(body)
+                extract = dat_update.extract_cues if kind == "cues" else dat_update.extract_keys
+                files = extract(body)
             except zipfile.BadZipFile:
-                cues = {}
-            self._cue_packs[system.code] = cues
+                files = {}
+        if files:
+            packs = self._cue_packs if kind == "cues" else self._key_packs
+            packs[system.code] = files
             self.status.emit(
-                self.tr("Redump: {0} CUE-Dateien für {1}.").format(len(cues), system.name)
+                self.tr("Redump: {0} {1} für {2}.").format(len(files), label, system.name)
             )
         else:
             self.status.emit(
-                self.tr("Redump: CUE-Dateien für {0} nicht verfügbar.").format(system.name)
+                self.tr("Redump: {0} für {1} nicht verfügbar.").format(label, system.name)
             )
-        self._timer.start(dat_update.REDUMP_DELAY_MS)
+        self._next_extra()
 
     def _write(self) -> None:
         self.progress.emit(0, 0)
@@ -288,6 +311,7 @@ class DatController(QObject):
             self._rules,
             self._platforms,
             self._cue_packs,
+            self._key_packs,
         )
         task.signals.done.connect(self._on_written)
         task.signals.error.connect(

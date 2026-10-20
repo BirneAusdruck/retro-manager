@@ -12,11 +12,14 @@ from datetime import date
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from retro_manager.core import manifest
+
 USER_AGENT = "Mozilla/5.0 (compatible; retro-manager/0.1; DAT-Aktualisierung)"
 
 REDUMP_DOWNLOADS_URL = "http://redump.org/downloads/"
 REDUMP_DATFILE_URL = "http://redump.org/datfile/{code}/"
 REDUMP_CUES_URL = "http://redump.org/cues/{code}/"
+REDUMP_KEYS_URL = "http://redump.org/keys/{code}/"
 # Pause zwischen zwei Redump-Downloads, um den Server zu schonen.
 REDUMP_DELAY_MS = 1000
 
@@ -33,6 +36,8 @@ NOINTRO_DIRNAME = "no-intro"
 REDUMP_DIRNAME = "redump"
 # Korrekte CUE-Dateien je RomM-Plattform; der Ordner gehört komplett der App.
 CUES_DIRNAME = "redump-cues"
+# Disc-Keys zum Entschlüsseln (z. B. PS3) je RomM-Plattform; gehört ebenfalls der App.
+KEYS_DIRNAME = "redump-keys"
 REPORT_FILENAME = "ABGLEICH.md"
 MANIFEST_FILENAME = ".retro-manager-dats.json"
 
@@ -64,6 +69,7 @@ class RedumpSystem:
     code: str
     name: str
     has_cues: bool = False
+    has_keys: bool = False
 
 
 @dataclass(frozen=True)
@@ -105,6 +111,7 @@ class DatUpdateResult:
     unmapped_dats: int
     report_path: Path
     cue_files: int = 0
+    key_files: int = 0
 
 
 # --- Webseiten auslesen -----------------------------------------------------------------------
@@ -119,9 +126,12 @@ def parse_redump_systems(page: str) -> list[RedumpSystem]:
             continue
         name = html.unescape(re.sub(r"<[^>]+>", "", cells[0])).strip()
         cue_codes = set(re.findall(r'href="/cues/([^"/]+)/"', row))
+        key_codes = set(re.findall(r'href="/keys/([^"/]+)/"', row))
         for code in re.findall(r'href="/datfile/([^"/]+)/"', row):
             label = f"{name} (BIOS)" if code.endswith("-bios") else name
-            systems.append(RedumpSystem(code=code, name=label, has_cues=code in cue_codes))
+            systems.append(
+                RedumpSystem(code, label, has_cues=code in cue_codes, has_keys=code in key_codes)
+            )
     return systems
 
 
@@ -203,13 +213,22 @@ def extract_redump(filename: str, payload: bytes, code: str = "") -> list[DatFil
 
 def extract_cues(payload: bytes) -> dict[str, bytes]:
     """CUE-Dateien aus einem Redump-Cuesheet-Paket (Dateiname -> Inhalt)."""
-    cues = {}
+    return _extract_suffix(payload, ".cue")
+
+
+def extract_keys(payload: bytes) -> dict[str, bytes]:
+    """Disc-Keys (`.key`, je 16 Byte) aus einem Redump-Key-Paket."""
+    return _extract_suffix(payload, ".key")
+
+
+def _extract_suffix(payload: bytes, suffix: str) -> dict[str, bytes]:
+    files = {}
     with zipfile.ZipFile(io.BytesIO(payload)) as archive:
         for member in archive.namelist():
             name = PurePosixPath(member).name
-            if name.lower().endswith(".cue"):
-                cues[name] = archive.read(member)
-    return cues
+            if name.lower().endswith(suffix) and manifest.is_safe_relative(name):
+                files[name] = archive.read(member)
+    return files
 
 
 # --- Zuordnung zu RomM ------------------------------------------------------------------------
@@ -294,14 +313,16 @@ def write_dats(
     sources: str,
     today: date,
     cue_packs: dict[str, dict[str, bytes]] | None = None,
+    key_packs: dict[str, dict[str, bytes]] | None = None,
 ) -> DatUpdateResult:
     """Schreibt zugeordnete DATs und den Abgleich; ersetzt nur früher von der App geschriebene.
 
-    `cue_packs` (Redump-Kürzel -> CUE-Dateien) landen je RomM-Plattform in `redump-cues/`.
+    `cue_packs`/`key_packs` (Redump-Kürzel -> Dateien) landen je RomM-Plattform in
+    `redump-cues/` bzw. `redump-keys/`.
     """
     dats_dir.mkdir(parents=True, exist_ok=True)
-    manifest = dats_dir / MANIFEST_FILENAME
-    for relative in _read_manifest(manifest):
+    manifest_path = dats_dir / MANIFEST_FILENAME
+    for relative in _read_manifest(manifest_path):
         old = dats_dir / relative
         if old.is_file():
             old.unlink()
@@ -314,12 +335,13 @@ def write_dats(
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(match.dat.data)
         written.append(target)
-    manifest.write_text(
+    manifest_path.write_text(
         json.dumps(sorted(str(path.relative_to(dats_dir)) for path in written), indent=1),
         encoding="utf-8",
     )
 
-    cue_files = _write_cues(dats_dir / CUES_DIRNAME, matches, cue_packs or {})
+    cue_files = _write_packs(dats_dir / CUES_DIRNAME, matches, cue_packs or {})
+    key_files = _write_packs(dats_dir / KEYS_DIRNAME, matches, key_packs or {})
 
     report = dats_dir / REPORT_FILENAME
     report.write_text(render_report(matches, platforms, sources, today), encoding="utf-8")
@@ -331,20 +353,21 @@ def write_dats(
         unmapped_dats=len([match for match in matches if match.platform is None]),
         report_path=report,
         cue_files=cue_files,
+        key_files=key_files,
     )
 
 
-def _write_cues(
-    cues_dir: Path, matches: list[DatMatch], cue_packs: dict[str, dict[str, bytes]]
+def _write_packs(
+    packs_dir: Path, matches: list[DatMatch], packs: dict[str, dict[str, bytes]]
 ) -> int:
-    if cues_dir.is_dir():
-        shutil.rmtree(cues_dir)
+    if packs_dir.is_dir():
+        shutil.rmtree(packs_dir)
     count = 0
     for match in matches:
-        pack = cue_packs.get(match.dat.source) if match.platform else None
+        pack = packs.get(match.dat.source) if match.platform else None
         if not pack:
             continue
-        target = cues_dir / match.platform.slug
+        target = packs_dir / match.platform.slug
         target.mkdir(parents=True, exist_ok=True)
         for name, data in pack.items():
             (target / name).write_bytes(data)
@@ -353,16 +376,10 @@ def _write_cues(
 
 
 def _read_manifest(path: Path) -> list[str]:
-    try:
-        entries = json.loads(path.read_text(encoding="utf-8"))
-    except OSError, ValueError:
+    entries = manifest.read_json(path, [])
+    if not isinstance(entries, list):
         return []
-    # Nur relative Pfade innerhalb von dats/ akzeptieren.
-    return [
-        entry
-        for entry in entries
-        if isinstance(entry, str) and not PurePosixPath(entry).is_absolute() and ".." not in entry
-    ]
+    return [entry for entry in entries if manifest.is_safe_relative(entry)]
 
 
 def render_report(

@@ -266,8 +266,8 @@ class IgirPanel(QWidget):
         self._info.setText(
             self.tr(
                 "{0} DATs für {1} RomM-Plattformen aktualisiert, dazu {5} korrekte CUE-Dateien "
-                "von Redump. Ohne DAT: {2} RomM-Plattformen; {3} DATs passen zu keiner "
-                "RomM-Plattform. Details: {4}"
+                "und {6} Disc-Keys von Redump. Ohne DAT: {2} RomM-Plattformen; {3} DATs passen "
+                "zu keiner RomM-Plattform. Details: {4}"
             ).format(
                 written,
                 result.covered_platforms,
@@ -275,6 +275,7 @@ class IgirPanel(QWidget):
                 result.unmapped_dats,
                 result.report_path,
                 result.cue_files,
+                result.key_files,
             )
         )
         self._info.show()

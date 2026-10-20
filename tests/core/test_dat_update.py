@@ -48,12 +48,15 @@ TOKENS = json.dumps(
 
 def test_parse_redump_systems_with_bios_and_entities():
     page = """<table><tr><th>System</th></tr>
+    <tr><td>Sony PlayStation 3</td><td><a href="/datfile/ps3/">Datfile</a></td>
+        <td><a href="/keys/ps3/">HEX</a></td></tr>
     <tr><td>Sony PlayStation</td><td><a href="/cues/psx/">Cuesheets</a></td>
         <td><a href="/datfile/psx/">Datfile</a></td>
         <td><a href="/datfile/psx-bios/">BIOS Datfile</a></td></tr>
     <tr><td>NEC PC-FX &amp; PC-FXGA</td><td><a href="/datfile/pc-fx/">Datfile</a></td></tr>
     <tr><td>Konami Twinkle</td><td></td></tr></table>"""
     assert du.parse_redump_systems(page) == [
+        du.RedumpSystem("ps3", "Sony PlayStation 3", has_keys=True),
         du.RedumpSystem("psx", "Sony PlayStation", has_cues=True),
         du.RedumpSystem("psx-bios", "Sony PlayStation (BIOS)"),
         du.RedumpSystem("pc-fx", "NEC PC-FX & PC-FXGA"),
@@ -236,3 +239,18 @@ def test_write_dats_writes_cues_per_platform_and_replaces_folder(tmp_path):
     assert (tmp_path / du.CUES_DIRNAME / "gb" / "Spiel (USA).cue").read_bytes() == b"FILE"
     assert not stale.exists()
     assert not (tmp_path / du.CUES_DIRNAME / "ami").exists()
+
+
+def test_extract_keys():
+    pack = zip_bytes({"Spiel (Europe).key": bytes(16), "liesmich.txt": b"x"})
+    assert du.extract_keys(pack) == {"Spiel (Europe).key": bytes(16)}
+
+
+def test_write_dats_writes_key_packs(tmp_path):
+    gb = du.DatFile("redump", "gb.dat", dat("Nintendo - Game Boy"), "Nintendo - Game Boy", "gbx")
+    matches = du.match_dats([gb], du.parse_console_tokens(TOKENS), PLATFORMS)
+    result = du.write_dats(
+        tmp_path, matches, PLATFORMS, "", date.today(), key_packs={"gbx": {"S.key": bytes(16)}}
+    )
+    assert result.key_files == 1
+    assert (tmp_path / du.KEYS_DIRNAME / "gb" / "S.key").read_bytes() == bytes(16)

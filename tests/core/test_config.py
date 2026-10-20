@@ -55,6 +55,14 @@ def test_save_and_load_roundtrip(tmp_path):
         max_parallel_jobs=4,
         igir_input_dir=Path("/mnt/archiv/neu"),
         igir_dat_dir=Path("/mnt/archiv/dats"),
+        ps3_host="192.168.1.50",
+        ps3_port=2121,
+        export_device="xbox360",
+        export_connection="ab12cd34",
+        chd_delete_originals=False,
+        archive_format="7z",
+        archive_level="max",
+        archive_delete_originals=True,
     )
     config.save_config(path, original)
     assert config.load_config(path) == original
@@ -82,3 +90,23 @@ def test_tools_and_reports_dir_are_inside_base(tmp_path):
 
 def test_dats_dir_is_on_hdd(tmp_path):
     assert config.dats_dir(tmp_path) == tmp_path / "dats"
+
+
+def test_exports_dir_is_on_hdd(tmp_path):
+    assert config.exports_dir(tmp_path) == tmp_path / "exports"
+
+
+def test_work_dir_is_hidden_on_hdd(tmp_path):
+    assert config.work_dir(tmp_path) == tmp_path / ".retro-manager-tmp"
+
+
+def test_chd_delete_originals_defaults_to_true(tmp_path):
+    assert config.load_config(tmp_path / "fehlt.ini").chd_delete_originals
+
+
+def test_save_config_keeps_other_sections(tmp_path):
+    path = tmp_path / "retro-manager.ini"
+    path.write_text("[connection:abc]\nname = NAS\n", encoding="utf-8")
+    config.save_config(path, AppConfig(romm_user="admin"))
+    text = path.read_text(encoding="utf-8")
+    assert "[connection:abc]" in text and "name = NAS" in text and "user = admin" in text

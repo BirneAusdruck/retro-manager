@@ -1,0 +1,59 @@
+name: Fehler
+description: Etwas funktioniert nicht wie erwartet.
+title: ""
+labels: ["bug"]
+body:
+  - type: textarea
+    id: beobachtet
+    attributes:
+      label: Was passiert?
+      description: Inklusive Fehlermeldung bzw. Auszug aus dem Protokoll.
+    validations:
+      required: true
+  - type: textarea
+    id: erwartet
+    attributes:
+      label: Was sollte passieren?
+    validations:
+      required: true
+  - type: textarea
+    id: schritte
+    attributes:
+      label: Schritte zum Nachstellen
+      placeholder: |
+        1. Reiter … öffnen
+        2. …
+    validations:
+      required: true
+  - type: dropdown
+    id: bereich
+    attributes:
+      label: Bereich
+      options:
+        # bereiche:start – wird von .github/labels.sh erzeugt, nicht von Hand ändern
+        - romm
+        - igir
+        - dats
+        - chdman
+        - archive
+        - export
+        - ftp
+        - aktivitaet
+        - einstellungen
+        - start
+        # bereiche:end
+        - übergreifend
+    validations:
+      required: true
+  - type: input
+    id: daten
+    attributes:
+      label: Betroffene Daten
+      description: System, Datei- bzw. Archivformat, Größe – ohne private Pfade oder Zugangsdaten.
+  - type: textarea
+    id: akzeptanz
+    attributes:
+      label: Behoben, wenn …
+      placeholder: |
+        - [ ] Fehler tritt mit den obigen Schritten nicht mehr auf
+        - [ ] Regressionstest vorhanden

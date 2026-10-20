@@ -69,6 +69,38 @@ class SettingsController(QObject):
         config.save_config(self._ini_path, self.config)
         self.changed.emit()
 
+    def save_export_device(self, device_id: str) -> None:
+        """Merkt sich das zuletzt gewählte Zielgerät im Reiter „Export vorbereiten“."""
+        self.config.export_device = device_id
+        config.save_config(self._ini_path, self.config)
+        self.changed.emit()
+
+    def save_export_connection(self, connection_id: str) -> None:
+        """Merkt sich, an welche Verbindung „An Gerät senden“ zuletzt ging."""
+        self.config.export_connection = connection_id
+        config.save_config(self._ini_path, self.config)
+        self.changed.emit()
+
+    def save_chd_delete_originals(self, delete: bool) -> None:
+        """Merkt sich, ob Originale nach geprüfter CHD-Umwandlung gelöscht werden."""
+        self.config.chd_delete_originals = delete
+        config.save_config(self._ini_path, self.config)
+        self.changed.emit()
+
+    def save_archive_options(self, archive_format: str, level: str, delete_originals: bool) -> None:
+        """Merkt sich Packformat, Kompressionsstufe und „Originale löschen“ (Reiter „Archive“)."""
+        self.config.archive_format = archive_format
+        self.config.archive_level = level
+        self.config.archive_delete_originals = delete_originals
+        config.save_config(self._ini_path, self.config)
+        self.changed.emit()
+
+    def save_max_parallel_jobs(self, count: int) -> None:
+        """Wie viele Jobs (z. B. Entpacken) gleichzeitig laufen dürfen."""
+        self.config.max_parallel_jobs = max(1, count)
+        config.save_config(self._ini_path, self.config)
+        self.changed.emit()
+
     def compose_secrets(self) -> tuple[str, str, str]:
         """DB-Passwort, DB-Root-Passwort und Auth-Schlüssel; fehlende werden einmalig erzeugt.
 

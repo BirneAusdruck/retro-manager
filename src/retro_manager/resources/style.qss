@@ -24,7 +24,10 @@
 }
 
 #igirMissing,
-#igirStatus {
+#igirStatus,
+#exportChdmanMissing,
+#chdmanMissing,
+#archiveMissing {
     color: #c0392b;
 }
 
@@ -34,4 +37,84 @@
 
 #setupHint {
     color: #c0392b;
+}
+
+#exportLog,
+#chdmanLog,
+#archiveLog {
+    font-family: monospace;
+}
+
+#chdmanPhase {
+    color: #555555;
+}
+
+#settingsTitle {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #1a1a2e;
+}
+
+#settingsHint {
+    color: #555555;
+}
+
+#activityIndicator {
+    background-color: #1a1a2e;
+    border-radius: 6px;
+}
+
+#activitySpinner,
+#activityMore {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+#activityTitle {
+    color: #f5e6c8;
+    font-weight: bold;
+}
+
+#activityDetail {
+    color: #ead6ae;
+}
+
+#activityBar,
+#activityRowBar {
+    max-height: 5px;
+    border: none;
+    background-color: #ead6ae;
+}
+
+#activityBar::chunk,
+#activityRowBar::chunk {
+    background-color: #f39c12;
+}
+
+#activityPanel {
+    background-color: #f5e6c8;
+    border: 3px solid #1a1a2e;
+    border-top: none;
+}
+
+#activityContent {
+    background-color: #f5e6c8;
+}
+
+#activityRow {
+    background-color: #ffffff;
+}
+
+#activityRow:hover {
+    background-color: #ead6ae;
+}
+
+#activityRowTitle {
+    color: #1a1a2e;
+    font-weight: bold;
+}
+
+#activityRowState,
+#activityRowDetail {
+    color: #555555;
 }

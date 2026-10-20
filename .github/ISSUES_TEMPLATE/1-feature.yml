@@ -1,0 +1,57 @@
+name: Feature
+description: Übergeordnetes Feature mit Spec; die Umsetzung erfolgt in Sub-Issues vom Typ „Aufgabe“.
+title: "Feature: "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ein Feature beschreibt das **Was und Warum**. Die Details stehen in der Spec unter `docs/specs/`.
+        Die einzelnen Umsetzungsschritte werden als Sub-Issues (Vorlage „Aufgabe“) angelegt.
+  - type: textarea
+    id: ziel
+    attributes:
+      label: Ziel
+      description: Was soll der Nutzer danach können, und warum?
+    validations:
+      required: true
+  - type: input
+    id: spec
+    attributes:
+      label: Spec
+      placeholder: docs/specs/<name>.md
+    validations:
+      required: true
+  - type: dropdown
+    id: bereich
+    attributes:
+      label: Bereich
+      multiple: true
+      options:
+        # bereiche:start – wird von .github/labels.sh erzeugt, nicht von Hand ändern
+        - romm
+        - igir
+        - dats
+        - chdman
+        - archive
+        - export
+        - ftp
+        - aktivitaet
+        - einstellungen
+        - start
+        # bereiche:end
+        - übergreifend
+    validations:
+      required: true
+  - type: textarea
+    id: fertig
+    attributes:
+      label: Fertig, wenn …
+      description: Grobe Kriterien für das gesamte Feature. Die prüfbaren Details stehen in den Aufgaben.
+      placeholder: |
+        - [ ] …
+  - type: textarea
+    id: offen
+    attributes:
+      label: Offene Fragen
+      description: Was ist noch unklar und muss vor der Umsetzung geklärt werden?
