@@ -1,14 +1,15 @@
 # DAT-Quellen
 
-Adressen in `core/dat_update.py`, Abläufe in `controllers/dat_controller.py` (Zeitlimit 120 s je Download).
+Adressen und User-Agent (`USER_AGENT`) in `core/dat_update.py`, Abläufe in `controllers/dat_controller.py` (Zeitlimit 120 s je Download).
 
 ## No-Intro (DAT-o-MATIC)
 
 - Daily-Paket Parent/Clone: `https://datomatic.no-intro.org/index.php?page=download&s=64&op=daily`.
 - Ablauf:
   1. Daily-Seite laden.
-  2. Formular senden → Antwort 302 auf die Download-Seite.
+  2. Formular senden (`dat_update.daily_form_fields`: `dat_type=pc`, `set[1..5]`, `set_redump_custom`, `set_redump_bios`, `include_standard`, Request-Knopf `daily_dl_*`) → Antwort 302; die Download-Seite steht im `Location`-Header (Weiterleitung manuell).
   3. Den **sichtbaren** Knopf „Download!!“ senden. Ein versteckter Knopf daneben ist eine Bot-Falle und darf nicht benutzt werden.
+- Die Antwort muss ein ZIP sein (beginnt mit `PK`).
 - Aus dem ZIP übernimmt die App die Sets „No-Intro“ (nach `dats/no-intro/`), „Non-Redump“ und „Unofficial“ (nach `dats/no-intro/Non-Redump/` bzw. `Unofficial/`).
 - Ändert No-Intro die Seite, ist hier zuerst nachzusehen.
 
@@ -19,7 +20,8 @@ Adressen in `core/dat_update.py`, Abläufe in `controllers/dat_controller.py` (Z
 - DAT je System: `http://redump.org/datfile/<code>/` (ZIP), einschließlich BIOS-DATs.
 - CUEs je System: `http://redump.org/cues/<code>/` (ZIP mit einer CUE je Spiel).
 - Disc-Keys: `http://redump.org/keys/<code>/` (z. B. `ps3`; ZIP mit `.key`-Dateien, 16 Byte je Spiel).
-- Zwischen den Anfragen 1 s Pause.
+- CUEs und Keys gibt es nur für Systeme, deren Zeile auf der Download-Liste einen `/cues/`- bzw. `/keys/`-Link hat; BIOS-DATs erkennt die App am Kürzel `-bios`.
+- Zwischen den Anfragen 1 s Pause, auch vor jedem CUE- und Key-Download.
 
 ## Igir
 

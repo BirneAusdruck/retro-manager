@@ -18,6 +18,8 @@ main
 
 ## Einmalig
 
+Skills nach `.claude/skills/`, Subagent `feature-reviewer.md` nach `.claude/agents/`.
+
 ```bash
 sudo pacman -S github-cli   # in der Distrobox
 gh auth login               # GitHub.com → HTTPS → Web-Browser
@@ -71,15 +73,54 @@ Wo stehe ich im Feature, was ist als Nächstes dran?
 
 ## 5. Feature abschließen
 
+Vorher prüfen lassen (read-only): `/review-feature` → aus Befunden Issues machen → erledigen.
+
 Nach dem letzten Sub-Issue (oder per `/implement-ticket <feature-nr>`): Claude holt `main` in den Feature-Branch, prüft Tests und Doku, setzt die Spec auf `Umgesetzt` und legt nach Freigabe den PR nach `main` an (`Closes #<feature-nr>`). Gemergt wird mit **Merge-Commit**, damit die Commits je Ticket erhalten bleiben.
+
+## Bestehendes Feature erweitern
+
+Offene Doku-PRs (z. B. von `document-backwards`) vorher mergen, damit Claude auf der aktuellen Doku arbeitet.
+
+**Klein (eine Session):** einzelnes Issue, läuft direkt gegen `main`.
+
+```bash
+gh issue create --template 2-aufgabe.yml   # oder Claude: „Leg ein Issue nach 2-aufgabe.yml mit bereich:<name> an: …“
+```
+
+```
+/implement-ticket <nr>
+```
+
+**Größer (mehrere Schritte):** eigener Name für die Erweiterung, Ablauf wie bei einem neuen Feature, aber ohne neuen Bereich.
+
+```
+/plan-feature <bereich>-<erweiterung> "kurze Idee"
+/ticket-breakdown docs/specs/<bereich>-<erweiterung>.md
+/implement-ticket <feature-nr>             # Stand + nächstes Sub-Issue
+```
+
+Bestehende Feature-Doku wird am Ende per `document-feature` erweitert.
+
+**Unklar, was fehlt:** erst `/review-feature <name>`, Befunde zu Issues machen, dann wie oben.
 
 ## Doku von Hand nachziehen
 
 ```
-/document-feature chdman
+/document-feature chdman        # ein Feature nach einer Änderung ohne Ticket
+/document-backwards             # alle fertigen Features vollständig nachziehen
+/document-backwards chdman ftp  # nur bestimmte
 ```
 
-Wenn sich etwas ohne Ticket geändert hat, die Doku veraltet ist oder ein Feature erklärt bzw. visualisiert werden soll. Ergebnis: `docs/features/<name>.md` mit Klassen- und Sequenzdiagramm, dazu angepasste specs, Architektur, Roadmap und ADRs.
+`document-backwards` prüft alles gegen den Code, stellt Unklarheiten gesammelt als Fragen, schlägt für Auffälligkeiten Issues vor und arbeitet auf eigenem Branch mit PR. Diagramme danach in der Vorschau prüfen (Strg+Umschalt+V, braucht die Extension „Markdown Preview Mermaid Support“).
+
+## Feature prüfen
+
+```
+/review-feature           # Feature des aktuellen Branches
+/review-feature chdman    # bestimmtes Feature
+```
+
+Ein read-only Subagent prüft Code gegen Spec, Doku, Akzeptanzkriterien und Projektregeln. Du bekommst eine Befundliste, wählst aus, was zum Ticket wird (Bug/Aufgabe/Doku), und entscheidest, ob es Sub-Issue des laufenden Features wird.
 
 ## Fehler melden
 
@@ -128,4 +169,68 @@ gh pr view --web                       # PR im Browser
 | `/ticket-breakdown <spec>` | Spec → Issues |
 | `/implement-ticket <nr>` | Sub-Issue/Bug umsetzen |
 | `/implement-ticket <feature-nr>` | Stand des Features, ggf. abschließen |
-| `/document-feature` | Feature-Doku manuell aktualisieren |
+| `/document-feature <name>` | Feature-Doku aktualisieren |
+| `/review-feature [name]` | Feature read-only prüfen → Issues |
+| `/document-backwards [name …]` | Doku fertiger Features vollständig nachziehen |
+
+## git-Spickzettel
+
+### Stand Anzeigen
+```bash
+git status                     # aktueller Branch, geänderte und neue Dateien
+git diff                       # Änderungen, die noch nicht vorgemerkt sind
+git diff --staged              # vorgemerkte Änderungen (nach add)
+git diff main                  # alles, was sich gegenüber main unterscheidet
+git log --oneline -10          # letzte 10 Commits kurz
+git log --oneline --graph --all  # alle Branches als Baum
+git show <commit>              # Inhalt eines Commits
+```
+
+### Branches
+```bash
+git branch                     # lokale Branches, * = aktueller
+git branch -a                  # inkl. Branches auf GitHub
+git switch <branch>            # wechseln
+git switch -c <neuer-branch>   # neu anlegen und wechseln
+git branch -d <branch>         # lokalen Branch löschen (nur wenn gemergt)
+```
+
+### Änderungen speichern
+```bash
+git add <datei>                # Datei für den Commit vormerken
+git add .                      # alle Änderungen im Ordner vormerken
+git commit -m "Nachricht"      # Commit erstellen
+```
+
+### Hoch- und runterladen
+```bash
+git pull                       # neuesten Stand von GitHub holen
+git push                       # eigene Commits hochladen
+git push -u origin <branch>    # neuen Branch zum ersten Mal hochladen
+git fetch                      # nur nachsehen, was es Neues gibt, ohne einzuarbeiten
+```
+
+### Zwischenparken
+```bash
+git stash                      # Änderungen beiseitelegen, Arbeitsstand sauber
+git stash pop                  # wieder zurückholen
+```
+
+### Rückgängig machen
+```bash
+git restore <datei>            # Änderungen an einer Datei verwerfen ⚠️
+git restore --staged <datei>   # Vormerkung aufheben, Änderung bleibt
+git commit --amend             # letzten Commit korrigieren (nur vor dem Push!)
+git revert <commit>            # Commit durch einen Gegen-Commit rückgängig machen
+```
+
+### Typischer Ablauf von Hand
+```bash
+git switch main && git pull     # aktuellen Stand holen
+git switch -c 58-kleiner-fix    # Branch anlegen
+# … ändern …
+git status && git diff          # prüfen
+git add . && git commit -m "Kleinen Fix umsetzen (#58)"
+git push -u origin 58-kleiner-fix
+gh pr create --fill             # PR anlegen
+```

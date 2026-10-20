@@ -29,6 +29,7 @@ Argumente in `core/tools.py`; alle mit `-bsp1 -bso0 -bse2` (Fortschritt auf die 
 | 7 | falsche Argumente |
 | 8 | zu wenig Speicher |
 | 255 | vom Nutzer abgebrochen |
+| −1 | kein Rückgabewert von 7-Zip: Der Prozess ist abgestürzt (von der App gesetzt) |
 
 ## Fortschrittsausgabe
 

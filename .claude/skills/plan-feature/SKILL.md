@@ -20,7 +20,7 @@ Grundsätze:
 - `docs/roadmap.md` – steht die Idee schon dort? Mit welchen Notizen?
 - Vorhandene Spec `docs/specs/<name>.md` – dann wird sie überarbeitet statt neu geschrieben.
 - Betroffene `docs/features/*.md` und Specs (z. B. `specs/bibliothek.md`, `specs/konfiguration.md`).
-- Bei neuen Modulen oder schichtübergreifenden Änderungen `docs/architekture.md`.
+- Bei neuen Modulen oder schichtübergreifenden Änderungen `docs/architecture.md`.
 - Den Code der betroffenen Bereiche, soweit nötig, um Machbarkeit und passende Vorbilder zu erkennen.
 - Offene Issues zum Thema: `gh issue list --search "<stichworte>"`.
 
@@ -68,7 +68,7 @@ Spec dem Nutzer zur Durchsicht geben und Änderungswünsche einarbeiten. Erst au
 - **Neuer Bereich** (neuer Reiter oder eigenständiges Feature ohne Feature-Doku):
   1. Platzhalter `docs/features/<name>.md` anlegen: Titel und „In Planung, siehe [Spec](../specs/<name>.md)“.
   2. `bash .github/labels.sh` ausführen (legt `bereich:<name>` an und aktualisiert die Vorlagen-Dropdowns).
-  3. Zeile in der Wegweiser-Tabelle der `CLAUDE.md` ergänzen.
+  3. Zeile in der Tabelle „Wo steht was?“ in `docs/README.md` ergänzen.
 
 ## 6. Abschluss
 

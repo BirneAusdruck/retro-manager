@@ -6,7 +6,7 @@ Aufbau der Anfragen und Auswertung der Antworten in `core/romm_api.py`, Ausführ
 
 | Endpunkt | Zweck |
 |---|---|
-| `GET /api/heartbeat` | Bereitschaft abfragen (Takt und Zeitlimit: [features/start.md](../features/start.md)). `SYSTEM.SHOW_SETUP_WIZARD = true` heißt: es gibt noch keinen Admin. |
+| `GET /api/heartbeat` | Bereitschaft abfragen (Takt und Zeitlimit: [features/start.md](../features/start.md#konfiguration)). `SYSTEM.SHOW_SETUP_WIZARD = true` heißt: es gibt noch keinen Admin. |
 | `POST /api/users` | Ersten Admin anlegen (Rolle `admin`). Leere E-Mail wird akzeptiert; Passwort mindestens 6 Zeichen (`MIN_PASSWORD_LENGTH`), sonst HTTP 400. |
 | `POST /api/token` | Anmeldung der App per OAuth2-Password-Grant (Formular mit `scope`, siehe unten); Antwort enthält Access- und Refresh-Token. Erneuern per Refresh-Grant. |
 | `GET /api/platforms/supported` | Alle von RomM unterstützten Plattformen (Slug, Name, Kategorie) für „DATs aktualisieren“. Bei HTTP 401 wird das Token erneuert und die Anfrage wiederholt. |

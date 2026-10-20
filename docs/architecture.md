@@ -60,7 +60,7 @@ Teilaktualisierungen (z. B. Prüfergebnisse) kommen per Signal und lösen nur `d
 | `export.py` | Exportplan (Entpacken, chdman, Kopieren, PS3 entschlüsseln) und Export-Manifest |
 | `devices.py` | Zielgeräte-Profile: Plattform → Ordner im Ziel, Pfade auf dem Gerät |
 | `ps3_iso.py` | PS3-ISOs mit Redump-Disc-Key entschlüsseln ([specs/ps3-iso.md](specs/ps3-iso.md)) |
-| `remote.py` | FTP/FTPS/SFTP hinter der Schnittstelle `RemoteFs`, Up-/Download mit Fortsetzen |
+| `remote.py` | FTP/FTPS/SFTP hinter der Schnittstelle `RemoteFs`, Up-/Download mit Fortsetzen ([specs/remote.md](specs/remote.md)) |
 | `connections.py` | Gespeicherte Verbindungen (INI), Passwörter im Schlüsselbund |
 | `platforms.py`, `jobs.py` | Platzhalter, noch leer (siehe [roadmap.md](roadmap.md)) |
 
@@ -75,18 +75,18 @@ Teilaktualisierungen (z. B. Prüfergebnisse) kommen per Signal und lösen nur `d
 | `igir_controller.py` | Igir per `QProcess`, Ausgabe zeilenweise, Report |
 | `dat_controller.py` | „DATs aktualisieren“: Downloads per `QNetworkAccessManager`, Schreiben im Thread-Pool |
 | `chdman_controller.py` | chdman-Reiter: Warteschlange, ein Vorgang nach dem anderen |
-| `archive_controller.py` | Archive-Reiter: Warteschlange mit bis zu `max_parallel_jobs` gleichzeitigen Jobs |
+| `archive_controller.py` | Archive-Reiter: Warteschlange mit bis zu `max_parallel_jobs` gleichzeitigen Jobs; je Eintrag ein `_Job` (7-Zip-Prozesskette, Einsortieren per `BackgroundTask`) |
 | `export_controller.py` | Aufbereiten für ein Zielgerät, Senden an die FTP-Warteschlange |
 | `transfer_controller.py` | Verbindungen, Durchsuchen, Übertragungs-Warteschlange |
-| `activity_controller.py` | Sammelt alle Hintergrundvorgänge für die Aktivitätsanzeige |
+| `activity_controller.py` | Sammelt alle Hintergrundvorgänge für die Aktivitätsanzeige (Datenklasse `Activity`, Reiterschlüssel `TAB_*`) |
 | `background_task.py` | `BackgroundTask`: `QRunnable` mit Fortschritt, Abbruch und Ergebnis per Signal |
 | `job_controller.py` | Platzhalter (`QThreadPool` mit einstellbarer Größe), noch ungenutzt |
 
 ### `widgets/`
 
-`main_window.py` (Kopfzeile: Logo links, Reiter `#toolTabs`, Aktivitätsanzeige rechts; darunter ein `QStackedWidget` mit den Arbeitsflächen), je Reiter ein Panel (`igir_panel`, `chdman_panel`, `archive_panel`, `export_panel`, `ftp_panel`, `settings_panel`, `romm_view`), Dialoge (`setup_dialog`, `connection_dialog`, `error_dialog`), Startbilder (`splash_screen`, `loading_screen`), wiederverwendbare Bausteine (`path_picker`, `info_label`, `activity_indicator`, `images`).
+`main_window.py` (Kopfzeile: Logo links, Reiter `#toolTabs`, Aktivitätsanzeige rechts; darunter ein `QStackedWidget` mit den Arbeitsflächen), je Reiter ein Panel (`igir_panel`, `chdman_panel`, `archive_panel`, `export_panel`, `ftp_panel`, `settings_panel`, `romm_view`), Dialoge (`setup_dialog`, `connection_dialog`, `error_dialog`), Startbilder (`splash_screen`, `loading_screen`), Aktivitätsanzeige (`activity_indicator`: `ActivityIndicator`, `ActivityPanel`, `ActivityPopup`), wiederverwendbare Bausteine (`path_picker`, `info_label`, `images`).
 
-Reiter in dieser Reihenfolge: **RomM · Igir · chdman · Archive · Export vorbereiten · FTP · Einstellungen**.
+Reiter in dieser Reihenfolge: **RomM · Archive · Igir · chdman · Export vorbereiten · FTP · Einstellungen**.
 
 `widgets/models/`: `game_table_model.GameTableModel` ist die gemeinsame Basis für alle Spielelisten (Auswahlkästchen, System, Spiel, Format, Größe, Status). Unterklassen passen Statusspalte, Formattext, gesperrte Zeilen und über `columns()` zusätzliche Spalten an: `export_table_model`, `chd_table_model`, `archive_table_model`. Daneben `report_table_model` (Igir), `remote_model` und `transfer_model` (FTP).
 
